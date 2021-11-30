@@ -1,5 +1,3 @@
-#!usr/bin/env python  
-#-*- coding:utf-8 _*- 
 """
 @version: python3.6
 @author: QLMX
@@ -20,13 +18,17 @@ import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.utils.data as data
 import torchvision.transforms as transforms
+from torchvision import datasets
 import dataset
 import numpy as np
 from args import args
 from build_net import make_model
 from transform import get_transforms
 
-from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig, get_optimizer, save_checkpoint
+from utils import Logger, AverageMeter, accuracy, mkdir_p, savefig, get_optimizer, save_checkpoint
+from progress.bar import Bar
+import warnings
+warnings.filterwarnings('ignore')
 
 
 state = {k: v for k, v in args._get_kwargs()}
@@ -44,6 +46,7 @@ if use_cuda:
     torch.cuda.manual_seed_all(args.manualSeed)
 best_acc = 0  # best test accuracy
 
+
 def main():
     global best_acc
     start_epoch = args.start_epoch  # start from epoch 0 or last checkpoint epoch
@@ -53,7 +56,6 @@ def main():
 
     # Data
     transform = get_transforms(input_size=args.image_size, test_size=args.image_size, backbone=None)
-
 
     print('==> Preparing dataset %s' % args.trainroot)
     trainset = dataset.Dataset(root=args.trainroot, transform=transform['val_train'])
@@ -71,7 +73,7 @@ def main():
         model = torch.nn.DataParallel(model).cuda()
 
     cudnn.benchmark = True
-    print('    Total params: %.2fM' % (sum(p.numel() for p in model.parameters())/1000000.0))
+    print('Total params: %.2fM' % (sum(p.numel() for p in model.parameters())/1000000.0))
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda()
@@ -94,7 +96,6 @@ def main():
     else:
         logger = Logger(os.path.join(args.checkpoint, 'log.txt'), title=title)
         logger.set_names(['Learning Rate', 'Train Loss', 'Valid Loss', 'Train Acc.', 'Valid Acc.'])
-
 
     if args.evaluate:
         print('\nEvaluation only')
@@ -131,13 +132,13 @@ def main():
             }, is_best, single=True, checkpoint=args.checkpoint)
         else:
             save_checkpoint({
-                    'fold': 0,
-                    'epoch': epoch + 1,
-                    'state_dict': model.state_dict(),
-                    'train_acc':train_acc,
-                    'acc': test_acc,
-                    'best_acc': best_acc,
-                    'optimizer' : optimizer.state_dict(),
+                'fold': 0,
+                'epoch': epoch + 1,
+                'state_dict': model.state_dict(),
+                'train_acc': train_acc,
+                'acc': test_acc,
+                'best_acc': best_acc,
+                'optimizer': optimizer.state_dict(),
                 }, is_best, single=True, checkpoint=args.checkpoint)
 
     logger.close()
@@ -146,6 +147,7 @@ def main():
 
     print('Best acc:')
     print(best_acc)
+
 
 def train(train_loader, model, criterion, optimizer, epoch, use_cuda):
     # switch to train mode
@@ -164,7 +166,7 @@ def train(train_loader, model, criterion, optimizer, epoch, use_cuda):
         data_time.update(time.time() - end)
 
         if use_cuda:
-            inputs, targets = inputs.cuda(), targets.cuda(async=True)
+            inputs, targets = inputs.cuda(), targets.cuda()
         inputs, targets = torch.autograd.Variable(inputs), torch.autograd.Variable(targets)
 
         # compute output
@@ -187,7 +189,7 @@ def train(train_loader, model, criterion, optimizer, epoch, use_cuda):
         end = time.time()
 
         # plot progress
-        bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
+        bar.suffix = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
                     batch=batch_idx + 1,
                     size=len(train_loader),
                     data=data_time.val,
@@ -200,7 +202,8 @@ def train(train_loader, model, criterion, optimizer, epoch, use_cuda):
                     )
         bar.next()
     bar.finish()
-    return (losses.avg, top1.avg, top5.avg)
+    return losses.avg, top1.avg, top5.avg
+
 
 def test(val_loader, model, criterion, epoch, use_cuda):
     global best_acc
@@ -239,7 +242,7 @@ def test(val_loader, model, criterion, epoch, use_cuda):
         end = time.time()
 
         # plot progress
-        bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
+        bar.suffix = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
                     batch=batch_idx + 1,
                     size=len(val_loader),
                     data=data_time.avg,
@@ -252,9 +255,8 @@ def test(val_loader, model, criterion, epoch, use_cuda):
                     )
         bar.next()
     bar.finish()
-    return (losses.avg, top1.avg, top5.avg)
+    return losses.avg, top1.avg, top5.avg
 
 
 if __name__ == '__main__':
     main()
-

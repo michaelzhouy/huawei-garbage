@@ -1,8 +1,8 @@
-'''Some helper functions for PyTorch, including:
+"""Some helper functions for PyTorch, including:
     - get_mean_and_std: calculate the mean and std value of dataset.
     - msr_init: net parameter initialization.
     - progress_bar: progress bar mimic xlua.progress.
-'''
+"""
 import errno
 import os
 import sys
@@ -24,7 +24,7 @@ __all__ = ['get_mean_and_std', 'init_params', 'mkdir_p', 'AverageMeter', 'get_op
 
 
 def get_mean_and_std(dataset):
-    '''Compute the mean and std value of dataset.'''
+    """Compute the mean and std value of dataset."""
     dataloader = trainloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True, num_workers=2)
 
     mean = torch.zeros(3)
@@ -32,14 +32,15 @@ def get_mean_and_std(dataset):
     print('==> Computing mean and std..')
     for inputs, targets in dataloader:
         for i in range(3):
-            mean[i] += inputs[:,i,:,:].mean()
-            std[i] += inputs[:,i,:,:].std()
+            mean[i] += inputs[:, i, :, :].mean()
+            std[i] += inputs[:, i, :, :].std()
     mean.div_(len(dataset))
     std.div_(len(dataset))
     return mean, std
 
+
 def init_params(net):
-    '''Init layer parameters.'''
+    """Init layer parameters."""
     for m in net.modules():
         if isinstance(m, nn.Conv2d):
             init.kaiming_normal(m.weight, mode='fan_out')
@@ -53,8 +54,9 @@ def init_params(net):
             if m.bias:
                 init.constant(m.bias, 0)
 
+
 def mkdir_p(path):
-    '''make dir if not exist'''
+    """make dir if not exist"""
     try:
         os.makedirs(path)
     except OSError as exc:  # Python >2.5
@@ -62,6 +64,7 @@ def mkdir_p(path):
             pass
         else:
             raise
+
 
 class AverageMeter(object):
     """Computes and stores the average and current value
@@ -82,6 +85,7 @@ class AverageMeter(object):
         self.count += n
         self.avg = self.sum / self.count
 
+
 def get_optimizer(model, args):
     parameters = []
     for name, param in model.named_parameters():
@@ -91,31 +95,43 @@ def get_optimizer(model, args):
             parameters.append({'params': param, 'lr': args.lr})
 
     if args.optimizer == 'sgd':
-        return torch.optim.SGD(parameters,
-                            # model.parameters(),
-                               args.lr,
-                               momentum=args.momentum, nesterov=args.nesterov,
-                               weight_decay=args.weight_decay)
+        return torch.optim.SGD(
+            parameters,
+            # model.parameters(),
+            args.lr,
+            momentum=args.momentum, nesterov=args.nesterov,
+            weight_decay=args.weight_decay
+        )
     elif args.optimizer == 'rmsprop':
-        return torch.optim.RMSprop(parameters,
-                                # model.parameters(),
-                                   args.lr,
-                                   alpha=args.alpha,
-                                   weight_decay=args.weight_decay)
+        return torch.optim.RMSprop(
+            parameters,
+            # model.parameters(),
+            args.lr,
+            alpha=args.alpha,
+            weight_decay=args.weight_decay
+        )
     elif args.optimizer == 'adam':
-        return torch.optim.Adam(parameters,
-                                # model.parameters(),
-                                args.lr,
-                                betas=(args.beta1, args.beta2),
-                                weight_decay=args.weight_decay)
+        return torch.optim.Adam(
+            parameters,
+            # model.parameters(),
+            args.lr,
+            betas=(args.beta1, args.beta2),
+            weight_decay=args.weight_decay
+        )
     elif args.optimizer == 'AdaBound':
-        return adabound.AdaBound(parameters,
-                                # model.parameters(),
-                                lr=args.lr, final_lr=args.final_lr)
+        return adabound.AdaBound(
+            parameters,
+            # model.parameters(),
+            lr=args.lr,
+            final_lr=args.final_lr
+        )
     elif args.optimizer == 'radam':
-        return RAdam(parameters, lr=args.lr, betas=(args.beta1, args.beta2),
-                          weight_decay=args.weight_decay)
-
+        return RAdam(
+            parameters,
+            lr=args.lr,
+            betas=(args.beta1, args.beta2),
+            weight_decay=args.weight_decay
+        )
     else:
         raise NotImplementedError
 
@@ -130,12 +146,14 @@ def save_checkpoint(state, is_best, single=True, checkpoint='checkpoint', filena
     curpath = os.path.join(checkpoint, fold + 'model_cur.pth')
 
     torch.save(state, filepath)
-    torch.save(state['state_dict'], curpath)
+    torch.save(state['state_dict'], curpath, _use_new_zipfile_serialization=False)
 
-    if is_best and state['epoch'] >= 5:
+    # if is_best and state['epoch'] >= 5:
+    if is_best and state['epoch'] == 1:
         model_name = 'model_' + str(state['epoch']) + '_' + str(int(round(state['train_acc']*100, 0))) + '_' + str(int(round(state['acc']*100, 0))) + '.pth'
         model_path = os.path.join(checkpoint, fold + model_name)
-        torch.save(state['state_dict'], model_path)
+        print(model_path)
+        torch.save(state['state_dict'], model_path, _use_new_zipfile_serialization=False)
 
 
 def save_checkpoint2(state, is_best, checkpoint='checkpoint', filename='checkpoint.pth.tar'):

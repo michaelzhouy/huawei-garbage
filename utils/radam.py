@@ -1,5 +1,3 @@
-#!usr/bin/env python  
-#-*- coding:utf-8 _*- 
 """
 @version: python3.6
 @author: QLMX
@@ -8,7 +6,7 @@
 """
 import math
 import torch
-from torch.optim.optimizer import Optimizer, required
+from torch.optim.optimizer import Optimizer
 
 
 class RAdam(Optimizer):
@@ -217,5 +215,4 @@ class AdamW(Optimizer):
                 p_data_fp32.addcdiv_(-step_size, exp_avg, denom)
 
                 p.data.copy_(p_data_fp32)
-
         return loss

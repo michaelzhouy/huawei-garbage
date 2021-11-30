@@ -19,6 +19,7 @@ import sys
 from PIL import Image
 import numpy as np
 
+
 class Dataset(Dataset):
     def __init__(self, root=None, transform=None, target_transform=None, to=None):
         if '.txt' in root:
@@ -44,20 +45,21 @@ class Dataset(Dataset):
         img_path, label = self.env[index].strip().split(',')
 
         try:
-            img = Image.open(img_path)
+            img = Image.open(img_path).convert('RGB')
         except:
             print(img_path)
             print('Corrupted image for %d' % index)
             return self[index + 1]
 
         if self.transform is not None:
-            if img.layers == 1:
-                print(img_path)
+            # if img.layers == 1:
+            #     print(img_path)
             img = self.transform(img)
 
         if self.target_transform is not None:
             label = self.target_transform(label)
-        return (img, int(label))
+        return img, int(label)
+
 
 class TestDataset(Dataset):
     def __init__(self, root=None, transform=None, target_transform=None, to=None):
@@ -67,7 +69,7 @@ class TestDataset(Dataset):
             self.env = root
 
         if not self.env:
-            print('cannot creat lmdb from %s' % (root))
+            print('cannot creat lmdb from %s' % root)
             sys.exit(0)
 
         self.len = len(self.env) - 1
@@ -85,7 +87,7 @@ class TestDataset(Dataset):
         img_path, label = self.env[index].strip().split(',')
 
         try:
-            img = Image.open(img_path)
+            img = Image.open(img_path).convert('RGB')
         except:
             print(img_path)
             print('Corrupted image for %d' % index)
@@ -94,11 +96,10 @@ class TestDataset(Dataset):
         if self.transform is not None:
             img = self.transform(img)
 
-
         if self.target_transform is not None:
             label = self.target_transform(label)
 
-        return (img, int(label))
+        return img, int(label)
 
 
 class resizeNormalize(object):

@@ -1,5 +1,3 @@
-#!usr/bin/env python  
-#-*- coding:utf-8 _*- 
 """
 @version: python3.6
 @author: QLMX
@@ -14,6 +12,7 @@ import torch
 
 from PIL import Image, ImageOps, ImageFilter
 from torchvision import transforms
+
 
 class Resize(object):
     def __init__(self, size, interpolation=Image.BILINEAR):
@@ -37,6 +36,7 @@ class Resize(object):
 
         return img
 
+
 class RandomRotate(object):
     def __init__(self, degree, p=0.5):
         self.degree = degree
@@ -48,14 +48,17 @@ class RandomRotate(object):
             img = img.rotate(rotate_degree, Image.BILINEAR)
         return img
 
+
 class RandomGaussianBlur(object):
     def __init__(self, p=0.5):
         self.p = p
+
     def __call__(self, img):
         if random.random() < self.p:
             img = img.filter(ImageFilter.GaussianBlur(
                 radius=random.random()))
         return img
+
 
 def get_train_transform(mean, std, size):
     train_transform = transforms.Compose([
@@ -70,6 +73,7 @@ def get_train_transform(mean, std, size):
     ])
     return train_transform
 
+
 def get_test_transform(mean, std, size):
     return transforms.Compose([
         Resize((int(size * (256 / 224)), int(size * (256 / 224)))),
@@ -78,12 +82,11 @@ def get_test_transform(mean, std, size):
         transforms.Normalize(mean=mean, std=std),
     ])
 
+
 def get_transforms(input_size=224, test_size=224, backbone=None):
     mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
     if backbone is not None and backbone in ['pnasnet5large', 'nasnetamobile']:
         mean, std = [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]
-    transformations = {}
-    transformations['val_train'] = get_train_transform(mean, std, input_size)
-    transformations['val_test'] = get_test_transform(mean, std, test_size)
-    return transformations
-
+    transformations_dic = {'val_train': get_train_transform(mean, std, input_size),
+                           'val_test': get_test_transform(mean, std, test_size)}
+    return transformations_dic

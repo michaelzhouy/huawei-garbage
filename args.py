@@ -15,8 +15,8 @@ from build_net import model_names
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 
 # Datasets
-parser.add_argument('-train', '--trainroot', default='data/new_shu_label.txt', type=str) #new_shu_label
-parser.add_argument('-val', '--valroot', default='data/val1.txt', type=str)
+parser.add_argument('-train', '--trainroot', default='../data/new_shu_label.txt', type=str) #new_shu_label
+parser.add_argument('-val', '--valroot', default='../data/val1.txt', type=str)
 
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
@@ -29,9 +29,9 @@ parser.add_argument('--image-size', default=288, type=int, metavar='N',
                     help='the train image size')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-parser.add_argument('--train-batch', default=64, type=int, metavar='N',
+parser.add_argument('--train-batch', default=16, type=int, metavar='N',
                     help='train batchsize (default: 256)')
-parser.add_argument('--test-batch', default=32, type=int, metavar='N',
+parser.add_argument('--test-batch', default=10, type=int, metavar='N',
                     help='test batchsize (default: 200)')
 parser.add_argument('--optimizer', default='sgd',
                          choices=['sgd', 'rmsprop', 'adam', 'AdaBound', 'radam'], metavar='N',
@@ -61,8 +61,10 @@ parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
 parser.add_argument('--final-lr', '--fl', default=1e-3,type=float,
                     metavar='W', help='weight decay (default: 1e-3)')
 # Checkpoints
-parser.add_argument('-c', '--checkpoint', default='/data0/search/qlmx/clover/garbage/res_16_288_last1', type=str, metavar='PATH',
+parser.add_argument('-c', '--checkpoint', default='./data0/garbage/res_16_288_last1', type=str, metavar='PATH',
                     help='path to save checkpoint (default: checkpoint)')
+# parser.add_argument('-c', '--checkpoint', default='/data/res_16_288_last1', type=str, metavar='PATH',
+#                     help='path to save checkpoint (default: checkpoint)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
 # Architecture
@@ -81,8 +83,8 @@ parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
 parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                     help='use pre-trained model')
-#Device options
-parser.add_argument('--gpu-id', default='0, 1, 2, 3', type=str,
+# Device options
+parser.add_argument('--gpu-id', default='6, 7', type=str,
                     help='id(s) for CUDA_VISIBLE_DEVICES')
 
 args = parser.parse_args()

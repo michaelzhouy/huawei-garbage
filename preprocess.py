@@ -1,5 +1,3 @@
-#!usr/bin/env python  
-#-*- coding:utf-8 _*- 
 """
 @version: python3.6
 @author: QLMX
@@ -8,16 +6,19 @@
 公众号：AI成长社
 知乎：https://www.zhihu.com/people/qlmx-61/columns
 """
-from glob import glob
 import os
 import codecs
 import random
 import numpy as np
+from PIL import Image
+import cv2
+from glob import glob
+from tqdm import tqdm
 from sklearn.model_selection import KFold, StratifiedKFold
 
 
-base_path = 'data/'
-data_path = base_path + 'garbage_classify/train_data'
+base_path = '../data/'
+data_path = base_path + 'train_data'
 
 label_files = glob(os.path.join(data_path, '*.txt'))
 img_paths = []
@@ -43,7 +44,7 @@ for index, file_path in enumerate(label_files):
         data_dict[label] = []
     data_dict[label].append(os.path.join(data_path, img_name) + ',' + str(label))
 
-data_path_add = base_path + 'garbage_classify_v3'
+data_path_add = base_path + 'train_data_v2'
 label_files_add = glob(os.path.join(data_path_add, '*.txt'))
 
 for index, file_path in enumerate(label_files_add):
@@ -80,21 +81,16 @@ with open(base_path + 'val1.txt', 'w') as f2:
         f2.write(item + '\n')
 
 
-from PIL import Image
-
-###predata 2
+# predata 2
 all_data = []
 train = []
 val = []
 rate = 0.9
-import cv2
-from tqdm import tqdm
 
 error_list = ['data/additional_train_data/38/242.jpg',
               'data/additional_train_data/34/79.jpg',
               'data/additional_train_data/27/55.jpg'
-              'data/new/8/0.jpg'
-              ]
+              'data/new/8/0.jpg']
 
 data_path = base_path + 'new/'
 for i in range(40):
@@ -110,8 +106,8 @@ for i in range(40):
             all_data.append(item + ',' + str(i))
             na_item.append(item + ',' + str(i))
     random.shuffle(na_item)
-    train.extend(na_item[ : int(len(na_item)*rate)])
-    val.extend(na_item[int(len(na_item)*rate):])
+    train.extend(na_item[: int(len(na_item) * rate)])
+    val.extend(na_item[int(len(na_item) * rate):])
 print(len(train), len(val))
 
 random.shuffle(all_data)
